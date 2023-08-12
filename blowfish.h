@@ -10,12 +10,19 @@ typedef struct {
     uint32_t S[4][256];
 } blowfish_t;
 
-void blowfish_init(blowfish_t* bf, uint8_t* key, unsigned len);
+void blowfish_init(blowfish_t* bf, const uint8_t* key, unsigned len);
+
 void blowfish_encrypt(blowfish_t* bf);
 void blowfish_decrypt(blowfish_t* bf);
+
 void blowfish_encrypt_buffer(blowfish_t* bf,
         uint8_t* data, unsigned len);
 void blowfish_decrypt_buffer(blowfish_t* bf,
         uint8_t* data, unsigned len);
+
+void blowfish_encrypt_cbc_buffer(blowfish_t* bf,
+        uint8_t* data, unsigned len, uint64_t IV);
+void blowfish_decrypt_cbc_buffer(blowfish_t* bf,
+        uint8_t* data, unsigned len, uint64_t IV);
 
 #endif

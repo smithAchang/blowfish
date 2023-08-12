@@ -41,12 +41,12 @@ void blowfish_encrypt(blowfish_t* bf)
         bf->XL ^= bf->P[i];
         bf->XR ^= F(bf, bf->XL);
 
-        tmp = bf->XL;
+        tmp    = bf->XL;
         bf->XL = bf->XR;
         bf->XR = tmp;
     }
 
-    tmp = bf->XL;
+    tmp    = bf->XL;
     bf->XL = bf->XR;
     bf->XR = tmp;
 
@@ -64,12 +64,12 @@ void blowfish_decrypt(blowfish_t* bf)
         bf->XL ^= bf->P[i];
         bf->XR ^= F(bf, bf->XL);
 
-        tmp = bf->XL;
+        tmp    = bf->XL;
         bf->XL = bf->XR;
         bf->XR = tmp;
     }
 
-    tmp = bf->XL;
+    tmp    = bf->XL;
     bf->XL = bf->XR;
     bf->XR = tmp;
 
@@ -77,7 +77,7 @@ void blowfish_decrypt(blowfish_t* bf)
     bf->XR ^= bf->P[1];
 }
 
-void blowfish_init(blowfish_t* bf, uint8_t* key, unsigned len)
+void blowfish_init(blowfish_t* bf, const uint8_t* key, unsigned len)
 {
     bf->XL = 0;
     bf->XR = 0;
@@ -92,7 +92,7 @@ void blowfish_init(blowfish_t* bf, uint8_t* key, unsigned len)
     for (unsigned i = 0; i < 18; i+=2)
     {
         blowfish_encrypt(bf);
-        bf->P[i] = bf->XL;
+        bf->P[i]   = bf->XL;
         bf->P[i+1] = bf->XR;
     }
 
@@ -102,7 +102,7 @@ void blowfish_init(blowfish_t* bf, uint8_t* key, unsigned len)
         {
             blowfish_encrypt(bf);
 
-            bf->S[i][j] = bf->XL;
+            bf->S[i][j]   = bf->XL;
             bf->S[i][j+1] = bf->XR;
         }
     }
@@ -115,8 +115,10 @@ void blowfish_encrypt_buffer(blowfish_t* bf,
     {
         bf->XL = *(uint32_t*)(data+i);
         bf->XR = *(uint32_t*)(data+i+4);
+
         blowfish_encrypt(bf);
-        *(uint32_t*)(data+i) = bf->XL;
+
+        *(uint32_t*)(data+i)   = bf->XL;
         *(uint32_t*)(data+i+4) = bf->XR;
     }
 }
@@ -128,9 +130,49 @@ void blowfish_decrypt_buffer(blowfish_t* bf,
     {
         bf->XL = *(uint32_t*)(data+i);
         bf->XR = *(uint32_t*)(data+i+4);
+
         blowfish_decrypt(bf);
-        *(uint32_t*)(data+i) = bf->XL;
+
+        *(uint32_t*)(data+i)   = bf->XL;
         *(uint32_t*)(data+i+4) = bf->XR;
+    }
+}
+
+void blowfish_encrypt_cbc_buffer(blowfish_t* bf,
+        uint8_t* data, unsigned size, uint64_t IV)
+{
+    for (unsigned i = 0; i < size; i+= 8)
+    {
+        *(uint64_t*)(data+i) ^= IV;
+        bf->XL = *(uint32_t*)(data+i);
+        bf->XR = *(uint32_t*)(data+i+4);
+
+        blowfish_encrypt(bf);
+
+        *(uint32_t*)(data+i)   = bf->XL;
+        *(uint32_t*)(data+i+4) = bf->XR;
+
+        IV = *(uint64_t*)(data+i);
+    }
+}
+
+void blowfish_decrypt_cbc_buffer(blowfish_t* bf,
+        uint8_t* data, unsigned size, uint64_t IV)
+{
+    for (unsigned i = 0; i < size; i+= 8)
+    {
+        uint64_t oldEncrypted = *(uint64_t*)(data+i);
+
+        bf->XL = *(uint32_t*)(data+i);
+        bf->XR = *(uint32_t*)(data+i+4);
+
+        blowfish_decrypt(bf);
+
+        *(uint32_t*)(data+i)   = bf->XL;
+        *(uint32_t*)(data+i+4) = bf->XR;
+        *(uint64_t*)(data+i)   ^= IV;
+
+        IV = oldEncrypted;
     }
 }
 
