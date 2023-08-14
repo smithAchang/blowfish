@@ -41,6 +41,7 @@ int ebc_usage(const char* szPlainText, const char* szKey)
     return -1;
   }
 
+  printf("%s encrypt&decrypt is OK!\n", __func__);
   return 0;
 }
 
@@ -99,12 +100,13 @@ int cbc_usage(const char* szPlainText, const char* szKey, uint64_t IV)
     return -1;
   }
 
+  printf("%s encrypt&decrypt is OK!\n", __func__);
   return 0;
 }
 
 int main(int argc, char* argv[])
 {
-  const char szPlainText[] = "abcdabcd";
+  const char szPlainText[] = "abcdabcdabcdabcd";
   const char szKey[]       = "Hello World, blowfish!";
 
   int rc = ebc_usage(szPlainText, szKey);
